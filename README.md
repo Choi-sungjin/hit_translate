@@ -104,7 +104,10 @@ popup.*            quick controls
 options.*          full settings (general / providers / advanced)
 _locales/          en, ko
 test/              provider unit tests (node) + DOM test page (headless Chrome)
+scripts/           icon pipeline (AI-generate via Codex CLI + resize/mask)
 ```
+
+The icon was generated with OpenAI's GPT Image model through the [Codex CLI](https://github.com/openai/codex) and post-processed with Pillow. Regenerate it anytime with `./scripts/generate-icon.sh` (requires `codex` logged in and Python + Pillow), or rebuild sizes from any square master with `python3 scripts/make_icons.py <master.png>`.
 
 Run tests:
 
