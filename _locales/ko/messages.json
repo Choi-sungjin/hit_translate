@@ -43,6 +43,8 @@
   "aboutText": { "message": "오픈소스 이중 언어 웹페이지 번역기입니다. 자신의 AI API 키를 등록해 사용하며, 요청은 브라우저에서 제공자에게 직접 전송되고 비용도 제공자에게 직접 결제합니다." },
   "aboutShortcuts": { "message": "키보드 단축키" },
   "getKey": { "message": "API 키 발급 ↗" },
+  "loadModels": { "message": "설치된 모델 불러오기" },
+  "ollamaNote": { "message": "Ollama는 기본적으로 브라우저 확장 요청을 차단합니다. 터미널에서 launchctl setenv OLLAMA_ORIGINS \"chrome-extension://*\" (macOS) 또는 setx OLLAMA_ORIGINS chrome-extension://* (Windows) 실행 후 Ollama를 재시작하세요. 로컬 모델은 느립니다 — 노트북 기준 배치당 1분 정도 걸릴 수 있으며, 작은 모델일수록 훨씬 빠릅니다." },
   "testBtn": { "message": "연결 테스트" },
   "savedToast": { "message": "저장됨" }
 }

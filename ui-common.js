@@ -29,8 +29,12 @@ const HIT_PROVIDERS = [
   ['openai', 'OpenAI'],
   ['claude', 'Anthropic Claude'],
   ['zai', 'Z.AI (GLM)'],
+  ['ollama', 'Ollama (local)'],
   ['custom', 'Custom (OpenAI-compatible)']
 ];
+
+// Providers that work without an API key (local / self-hosted endpoints).
+const HIT_KEYLESS = new Set(['ollama', 'custom']);
 
 function hitApplyI18n(root = document) {
   for (const el of root.querySelectorAll('[data-i18n]')) {

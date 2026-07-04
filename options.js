@@ -30,12 +30,23 @@ const PROVIDER_META = {
     models: ['glm-4.5-flash', 'glm-4.5-air', 'glm-4.5', 'glm-4.6'],
     keyUrl: 'https://z.ai/manage-apikey/apikey-list'
   },
+  ollama: {
+    label: 'Ollama (local)',
+    defaultModel: '',
+    defaultBaseUrl: 'http://localhost:11434/v1',
+    models: ['gemma4:26b-a4b-it-qat', 'gemma4:e4b', 'qwen3:8b', 'llama3.1:8b'],
+    keyUrl: 'https://ollama.com/download',
+    keyless: true,
+    listModels: true,
+    noteKey: 'ollamaNote'
+  },
   custom: {
     label: 'Custom (OpenAI-compatible)',
     defaultModel: '',
     defaultBaseUrl: '',
     models: [],
-    keyUrl: ''
+    keyUrl: '',
+    keyless: true
   }
 };
 
@@ -113,7 +124,7 @@ function buildProviderCard(id) {
   keyInput.value = cfg.apiKey || '';
   keyInput.autocomplete = 'off';
   keyInput.spellcheck = false;
-  keyInput.placeholder = id === 'custom' ? '(optional for local servers)' : 'sk-…';
+  keyInput.placeholder = meta.keyless ? '(not needed)' : 'sk-…';
   keyInput.addEventListener('input', () => {
     providerCfg(id).apiKey = keyInput.value.trim();
     scheduleSave();
@@ -155,6 +166,39 @@ function buildProviderCard(id) {
     scheduleSave();
   });
   modelRow.append(modelLabel, modelInput);
+
+  if (meta.listModels) {
+    const loadBtn = document.createElement('button');
+    loadBtn.type = 'button';
+    loadBtn.textContent = chrome.i18n.getMessage('loadModels') || 'Load installed models';
+    loadBtn.addEventListener('click', async () => {
+      loadBtn.disabled = true;
+      try {
+        const base = (providerCfg(id).baseUrl || meta.defaultBaseUrl).replace(/\/v1\/?$/, '');
+        const res = await fetch(`${base}/api/tags`);
+        const data = await res.json();
+        const names = (data.models || []).map((m) => m.name);
+        const list = document.getElementById(`models-${id}`);
+        list.innerHTML = '';
+        for (const name of names) {
+          const opt = document.createElement('option');
+          opt.value = name;
+          list.appendChild(opt);
+        }
+        if (names.length && !providerCfg(id).model) {
+          modelInput.value = names[0];
+          providerCfg(id).model = names[0];
+          scheduleSave();
+        }
+        toast(`${names.length} model(s) found`);
+      } catch (err) {
+        toast(`Ollama not reachable: ${String(err?.message || err)}`);
+      } finally {
+        loadBtn.disabled = false;
+      }
+    });
+    modelRow.appendChild(loadBtn);
+  }
   card.appendChild(modelRow);
 
   // base URL
@@ -202,6 +246,13 @@ function buildProviderCard(id) {
   });
   testRow.append(testBtn, result);
   card.appendChild(testRow);
+
+  if (meta.noteKey) {
+    const note = document.createElement('p');
+    note.className = 'cardnote';
+    note.textContent = chrome.i18n.getMessage(meta.noteKey) || '';
+    card.appendChild(note);
+  }
 
   return card;
 }

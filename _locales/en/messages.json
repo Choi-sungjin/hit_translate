@@ -43,6 +43,8 @@
   "aboutText": { "message": "Open-source bilingual web page translator. Bring your own AI API key — requests go straight from your browser to the provider, and you pay the provider directly." },
   "aboutShortcuts": { "message": "Keyboard shortcuts" },
   "getKey": { "message": "Get API key ↗" },
+  "loadModels": { "message": "Load installed models" },
+  "ollamaNote": { "message": "Ollama blocks browser-extension requests by default. Run once: launchctl setenv OLLAMA_ORIGINS \"chrome-extension://*\" (macOS) or setx OLLAMA_ORIGINS chrome-extension://* (Windows), then restart Ollama. Local models are slow — expect ~1 min per batch on laptop hardware; smaller models translate much faster." },
   "testBtn": { "message": "Test connection" },
   "savedToast": { "message": "Saved" }
 }

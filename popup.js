@@ -24,7 +24,7 @@ function currentHost() {
 
 function updateKeyWarning() {
   const cfg = settings.providers?.[settings.provider] || {};
-  const needsKey = settings.provider !== 'custom' && !cfg.apiKey;
+  const needsKey = !HIT_KEYLESS.has(settings.provider) && !cfg.apiKey;
   document.getElementById('keyWarning').hidden = !needsKey;
 }
 

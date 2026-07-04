@@ -35,11 +35,27 @@ Bilingual "immersive-style" page translation is a genuinely great reading UX, bu
 | OpenAI | `gpt-4o-mini` | [platform.openai.com](https://platform.openai.com/api-keys) |
 | Anthropic Claude | `claude-haiku-4-5` | [console.anthropic.com](https://console.anthropic.com/settings/keys) |
 | Z.AI (GLM) | `glm-4.5-flash` | [z.ai](https://z.ai/manage-apikey/apikey-list) |
-| Custom (OpenAI-compatible) | — | Ollama, LM Studio, OpenRouter, DeepSeek, Groq, vLLM, … |
+| Ollama (local) | pick from installed | no key — [ollama.com](https://ollama.com/download) |
+| Custom (OpenAI-compatible) | — | LM Studio, OpenRouter, DeepSeek, Groq, vLLM, … |
 
-The **Custom** provider accepts any OpenAI-compatible `/chat/completions` endpoint, which means you can also translate fully offline with a local model (e.g. Ollama at `http://localhost:11434/v1` — no API key needed).
+The **Custom** provider accepts any OpenAI-compatible `/chat/completions` endpoint. Model and base URL are editable per provider, so new models work the day they ship.
 
-Model and base URL are editable per provider, so new models work the day they ship.
+### Fully local translation with Ollama
+
+Translate without any cloud account — pages never leave your machine.
+
+1. Install [Ollama](https://ollama.com/download) and pull a model (e.g. `ollama pull gemma4:e4b`).
+2. Allow browser-extension requests — Ollama rejects them with `403` by default:
+   - **macOS**: `launchctl setenv OLLAMA_ORIGINS "chrome-extension://*"`, then quit & reopen the Ollama app. (Run again after reboot, or add it to a LaunchAgent.)
+   - **Windows**: `setx OLLAMA_ORIGINS chrome-extension://*`, then restart Ollama.
+   - **`ollama serve` users**: `OLLAMA_ORIGINS="chrome-extension://*" ollama serve`.
+3. In **Settings → AI Providers → Ollama**, click **Load installed models** and pick one, then **Test connection**.
+
+Notes on local models:
+
+- Hit Translate automatically sends `think: false`, since reasoning phases roughly double latency for translation with no quality gain (measured on `gemma4:26b-a4b-it-qat`).
+- Requests to Ollama run one at a time with a 5-minute timeout — local batches are slow (a 25B-class model takes ~1 min per batch on laptop hardware). Smaller models (4–8B) are usually the right choice for full-page translation.
+- `<think>…</think>` blocks that reasoning models leak into their output are stripped automatically (also applies to DeepSeek-R1-style models via the Custom provider).
 
 ## Install (developer mode — macOS & Windows)
 
@@ -126,3 +142,5 @@ Contributions are welcome — open an issue or PR.
 **설치 (macOS / Windows 공통):** 위 [Install](#install-developer-mode--macos--windows) 절차대로 저장소를 받고 → `chrome://extensions` → 개발자 모드 켜기 → **압축해제된 확장 프로그램을 로드** → 폴더 선택 → 설정에서 API 키 등록 후 **연결 테스트** → 아무 외국어 페이지에서 `Alt+Q`.
 
 **주요 기능:** 페이지 이중 번역(`Alt+Q`), 번역만 보기 모드, 스크롤 위치 기반 지연 번역(토큰 절약), SPA 동적 콘텐츠 자동 감지, `Alt`+마우스오버 문단 번역, 드래그 선택 번역, 5가지 번역문 스타일, 사이트별 자동 번역/제외 목록, 배치·캐시·재시도 처리.
+
+**Ollama 로컬 번역:** 클라우드 계정 없이 완전 로컬로 번역할 수 있습니다. Ollama가 기본적으로 확장 프로그램 요청을 차단하므로, macOS에서는 `launchctl setenv OLLAMA_ORIGINS "chrome-extension://*"` 실행 후 Ollama 앱을 재시작하세요 (Windows: `setx OLLAMA_ORIGINS chrome-extension://*`). 이후 설정 → AI 제공자 → Ollama에서 **설치된 모델 불러오기**로 모델을 선택하면 됩니다. 로컬 모델은 배치당 1분 안팎으로 느리므로 전체 페이지 번역에는 4~8B급 작은 모델을 권장합니다.

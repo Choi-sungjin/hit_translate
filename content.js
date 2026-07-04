@@ -260,8 +260,14 @@
     }
   }
 
+  function maxConcurrency() {
+    // Local Ollama processes one request at a time; queuing more in parallel
+    // only lets them time out while they wait.
+    return settings.provider === 'ollama' ? 1 : settings.concurrency;
+  }
+
   function scheduleBatch(batch) {
-    if (activeRequests >= settings.concurrency) {
+    if (activeRequests >= maxConcurrency()) {
       waitingBatches.push(batch);
       return;
     }

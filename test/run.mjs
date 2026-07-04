@@ -5,7 +5,8 @@ import {
   extractText,
   parseTranslations,
   buildMessages,
-  translateTexts
+  translateTexts,
+  providerRequiresKey
 } from '../providers.js';
 
 let failures = 0;
@@ -62,6 +63,21 @@ function check(name, cond, detail = '') {
 
   const zai = buildRequest('zai', { apiKey: 'Z' }, texts, 'ko');
   check('zai endpoint', zai.url === 'https://api.z.ai/api/paas/v4/chat/completions');
+  check('zai thinking disabled', JSON.parse(zai.init.body).thinking?.type === 'disabled');
+
+  const oll = buildRequest('ollama', { model: 'gemma4:26b-a4b-it-qat' }, texts, 'ko');
+  check(
+    'ollama endpoint + think off',
+    oll.url === 'http://localhost:11434/v1/chat/completions' &&
+      JSON.parse(oll.init.body).think === false
+  );
+  let ollThrew = false;
+  try {
+    buildRequest('ollama', {}, texts, 'ko');
+  } catch {
+    ollThrew = true;
+  }
+  check('ollama without model throws', ollThrew);
 
   const cus = buildRequest('custom', { baseUrl: 'http://localhost:11434/v1/', model: 'llama3' }, texts, 'ko');
   check('custom trailing slash normalized', cus.url === 'http://localhost:11434/v1/chat/completions');
@@ -73,6 +89,15 @@ function check(name, cond, detail = '') {
     threw = true;
   }
   check('custom without baseUrl throws', threw);
+}
+
+// ---- key requirements ----
+{
+  check(
+    'keyless providers',
+    !providerRequiresKey('ollama') && !providerRequiresKey('custom') &&
+      providerRequiresKey('gemini') && providerRequiresKey('claude')
+  );
 }
 
 // ---- extractText ----
@@ -99,6 +124,10 @@ function check(name, cond, detail = '') {
   check('wrapper object', parseTranslations('{"translations":["x","y"]}', 2).join(',') === 'x,y');
   check('numbered lines fallback', parseTranslations('1. foo\n2) bar', 2).join(',') === 'foo,bar');
   check('single plain text fallback', parseTranslations('그냥 번역문', 1)[0] === '그냥 번역문');
+  check(
+    'think tags stripped',
+    parseTranslations('<think>reasoning about [1,2] here</think>["a","b"]', 2).join(',') === 'a,b'
+  );
   check(
     'nested brackets inside strings',
     parseTranslations('["a [1] b","c"]', 2)[0] === 'a [1] b'

@@ -2,7 +2,7 @@
 // Owns settings defaults, the translation cache, context menus, keyboard
 // commands and all network calls to the AI providers.
 
-import { PROVIDERS, translateTexts } from './providers.js';
+import { PROVIDERS, providerRequiresKey, translateTexts } from './providers.js';
 
 export const DEFAULT_SETTINGS = {
   provider: 'gemini',
@@ -22,6 +22,7 @@ export const DEFAULT_SETTINGS = {
     openai: { apiKey: '', model: '', baseUrl: '' },
     claude: { apiKey: '', model: '', baseUrl: '' },
     zai: { apiKey: '', model: '', baseUrl: '' },
+    ollama: { apiKey: '', model: '', baseUrl: '' },
     custom: { apiKey: '', model: '', baseUrl: '' }
   }
 };
@@ -65,7 +66,7 @@ async function handleTranslate({ texts, targetLang, provider }) {
   const lang = targetLang || settings.targetLang;
   const cfg = settings.providers[providerId];
   if (!PROVIDERS[providerId]) return { ok: false, error: `Unknown provider "${providerId}"` };
-  if (!cfg?.apiKey && providerId !== 'custom') {
+  if (!cfg?.apiKey && providerRequiresKey(providerId)) {
     return { ok: false, error: 'NO_KEY', provider: providerId };
   }
 

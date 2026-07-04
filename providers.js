@@ -40,14 +40,29 @@ export const PROVIDERS = {
     models: ['glm-4.5-flash', 'glm-4.5-air', 'glm-4.5', 'glm-4.6'],
     keyUrl: 'https://z.ai/manage-apikey/apikey-list'
   },
+  ollama: {
+    label: 'Ollama (local)',
+    defaultModel: '',
+    defaultBaseUrl: 'http://localhost:11434/v1',
+    models: ['gemma4:26b-a4b-it-qat', 'gemma4:e4b', 'qwen3:8b', 'llama3.1:8b'],
+    keyUrl: 'https://ollama.com/download',
+    requiresKey: false,
+    // Local models are slow; a batch can easily take minutes on laptop hardware.
+    timeoutMs: 300000
+  },
   custom: {
     label: 'Custom (OpenAI-compatible)',
     defaultModel: '',
     defaultBaseUrl: '',
     models: [],
-    keyUrl: ''
+    keyUrl: '',
+    requiresKey: false
   }
 };
+
+export function providerRequiresKey(providerId) {
+  return PROVIDERS[providerId]?.requiresKey !== false;
+}
 
 const DEFAULT_SYSTEM_PROMPT =
   'You are a professional translation engine. Translate every string in the ' +
@@ -87,6 +102,7 @@ export function buildRequest(providerId, cfg, texts, targetLang, customPrompt) {
   const model = (cfg.model || '').trim() || meta.defaultModel;
   const baseUrl = (cfg.baseUrl || '').trim() || meta.defaultBaseUrl;
   if (!baseUrl) throw new Error('Base URL is not configured');
+  if (!model) throw new Error('Model is not set — pick one in the provider settings');
   const { system, user } = buildMessages(texts, targetLang, customPrompt);
 
   if (providerId === 'gemini') {
@@ -134,7 +150,7 @@ export function buildRequest(providerId, cfg, texts, targetLang, customPrompt) {
     };
   }
 
-  // openai, zai and custom all speak the OpenAI chat-completions dialect.
+  // openai, zai, ollama and custom all speak the OpenAI chat-completions dialect.
   const body = {
     model,
     messages: [
@@ -143,6 +159,10 @@ export function buildRequest(providerId, cfg, texts, targetLang, customPrompt) {
     ]
   };
   if (supportsTemperature(model)) body.temperature = 0.2;
+  // Skip "thinking" phases — pure translation gains nothing from them and
+  // they multiply latency (measured 71s → 50s per batch on gemma4 26B).
+  if (providerId === 'ollama') body.think = false;
+  if (providerId === 'zai') body.thinking = { type: 'disabled' };
   return {
     url: joinUrl(baseUrl, '/chat/completions'),
     init: {
@@ -177,6 +197,9 @@ export function extractText(providerId, data) {
 export function parseTranslations(raw, expected) {
   let text = String(raw || '').trim();
   if (!text) throw new Error('Empty model response');
+  // Reasoning models (DeepSeek-R1, GLM, some local models) may leak their
+  // chain of thought into the content despite being asked not to think.
+  text = text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
   text = text.replace(/^```[a-zA-Z]*\s*/, '').replace(/```\s*$/, '').trim();
 
   const start = text.indexOf('[');
@@ -231,7 +254,8 @@ async function fetchWithTimeout(url, init, timeoutMs) {
 
 // Translate `texts` in one request. Throws on failure.
 export async function translateTexts(providerId, cfg, texts, targetLang, options = {}) {
-  const { customPrompt, timeoutMs = 60000 } = options;
+  const { customPrompt } = options;
+  const timeoutMs = options.timeoutMs ?? PROVIDERS[providerId]?.timeoutMs ?? 60000;
   const { url, init } = buildRequest(providerId, cfg, texts, targetLang, customPrompt);
   const res = await fetchWithTimeout(url, init, timeoutMs);
   if (!res.ok) {
@@ -240,6 +264,12 @@ export async function translateTexts(providerId, cfg, texts, targetLang, options
       detail = (await res.text()).slice(0, 300);
     } catch {
       /* ignore */
+    }
+    if (res.status === 403 && providerId === 'ollama') {
+      throw new Error(
+        'Ollama rejected the request (403). Allow extension origins: set ' +
+          'OLLAMA_ORIGINS="chrome-extension://*" and restart Ollama.'
+      );
     }
     throw new Error(`HTTP ${res.status} from ${providerId}: ${detail}`);
   }
