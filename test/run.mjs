@@ -8,7 +8,7 @@ import {
   translateTexts,
   providerRequiresKey
 } from '../providers.js';
-import { itemsToLines, itemsToParagraphs } from '../pdf-extract.js';
+import { itemsToLines, itemsToParagraphs, splitLongParagraph, isPdfUrl } from '../pdf-extract.js';
 
 let failures = 0;
 function check(name, cond, detail = '') {
@@ -173,6 +173,40 @@ function check(name, cond, detail = '') {
   );
   check('pdf de-hyphenation', paras[2] === 'Second paragraph with translation joined across lines.', paras[2]);
   check('pdf empty input', itemsToParagraphs([]).length === 0);
+
+  // bullet lines split even with normal line spacing
+  const bullets = [
+    it('-First useful phrase for papers.', 72, 720),
+    it('-Second useful phrase right below.', 72, 706),
+    it('-Third one continues the dense list.', 72, 692)
+  ];
+  check('pdf bullet lines split', itemsToParagraphs(bullets).length === 3);
+
+  // long paragraph safety split
+  const sentence = 'This sentence is repeated to grow well past the limit. ';
+  const long = sentence.repeat(40).trim();
+  const chunks = splitLongParagraph(long, 500);
+  check(
+    'pdf long paragraph split',
+    chunks.length > 1 && chunks.every((c) => c.length <= 500) && chunks.join(' ') === long,
+    `${chunks.length} chunks`
+  );
+  check('pdf short paragraph untouched', splitLongParagraph('short one', 500).length === 1);
+
+  // auto-open URL detection
+  check(
+    'isPdfUrl matches',
+    isPdfUrl('https://x.com/a/b.pdf') &&
+      isPdfUrl('https://x.com/%EB%AC%B8%EC%84%9C.PDF') &&
+      isPdfUrl('file:///Users/me/doc.pdf')
+  );
+  check(
+    'isPdfUrl rejects',
+    !isPdfUrl('https://x.com/a.pdf#hit-original') &&
+      !isPdfUrl('chrome-extension://abc/pdf.html?file=x.pdf') &&
+      !isPdfUrl('https://x.com/page.html') &&
+      !isPdfUrl('')
+  );
 }
 
 // ---- E2E against a mock OpenAI-compatible server ----

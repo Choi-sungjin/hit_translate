@@ -23,7 +23,7 @@ Bilingual "immersive-style" page translation is a genuinely great reading UX, bu
 - **Hover translate** — hold `Alt` and point at a paragraph to translate just that one
 - **Selection translate** — select text, click the bubble, get an instant translation popover
 - **Display styles** — dashed underline, underline, highlight, quote bar, or plain
-- **PDF translation** — built-in bilingual PDF reader: open any PDF (URL, local file, or drag & drop), get original + translation paragraph by paragraph, and export the result as a standalone bilingual HTML file
+- **PDF translation** — navigating to a PDF automatically reloads it in the built-in bilingual reader (toggleable; local files and drag & drop work too), with original + translation paragraph by paragraph and export to a standalone bilingual HTML file
 - **Per-site rules** — always-translate list and never-run list
 - **Smart batching + caching + retry** — paragraphs are grouped per request, responses are cached, failed batches fall back to per-paragraph retries
 - **20 target languages**, UI in English and Korean
@@ -82,7 +82,7 @@ The same steps work on macOS, Windows, and Linux — the extension is pure JavaS
 | Translate / restore the page | `Alt+Q`, popup button, or right-click → *translate this page* |
 | Translate one paragraph | Hold `Alt` and hover over it |
 | Translate a selection | Select text → click the blue bubble |
-| Translate a PDF | Popup → *Translate this PDF* (when viewing one), right-click a PDF link/page, or open the reader from the extension and drop a file |
+| Translate a PDF | Just open one — it loads in the bilingual reader automatically (or use the popup button / right-click menu / drag & drop; "Open original" links back to Chrome's viewer) |
 | Bilingual ↔ translation-only | Popup → *Display* |
 | Always translate a site | Popup → *Always translate this site* |
 | Change style / language / provider | Popup or Settings |

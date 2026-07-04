@@ -17,6 +17,8 @@
   "pdfLoadError": { "message": "Could not load PDF" },
   "pdfNoText": { "message": "No extractable text found — this PDF is likely scanned images (OCR not supported yet)." },
   "pdfSomeFailed": { "message": "Some paragraphs failed" },
+  "pdfOpenOriginal": { "message": "Open original" },
+  "optPdfAutoOpen": { "message": "Open PDFs in the bilingual reader automatically" },
   "popupTranslate": { "message": "Translate this page" },
   "popupRestore": { "message": "Show original" },
   "popupUnavailable": { "message": "Not available on this page" },

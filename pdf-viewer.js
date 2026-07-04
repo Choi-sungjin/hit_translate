@@ -222,6 +222,15 @@ async function init() {
   const param = new URLSearchParams(location.search).get('file');
   if (param) {
     els.urlInput.value = param;
+    // Escape hatch back to Chrome's own viewer; the #hit-original fragment
+    // stops the auto-open listener from bouncing the tab straight back here.
+    if (/^https?:/i.test(param)) {
+      const orig = document.createElement('a');
+      orig.href = `${param}#hit-original`;
+      orig.textContent = t('pdfOpenOriginal', 'Open original');
+      orig.className = 'origlink';
+      document.querySelector('.status').appendChild(orig);
+    }
     await loadFromUrl(param);
   }
 }

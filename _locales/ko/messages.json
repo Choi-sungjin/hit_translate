@@ -17,6 +17,8 @@
   "pdfLoadError": { "message": "PDF를 불러올 수 없습니다" },
   "pdfNoText": { "message": "추출 가능한 텍스트가 없습니다 — 스캔 이미지 PDF로 보입니다 (OCR 미지원)." },
   "pdfSomeFailed": { "message": "일부 문단 번역 실패" },
+  "pdfOpenOriginal": { "message": "원본 열기" },
+  "optPdfAutoOpen": { "message": "PDF를 자동으로 이중 언어 리더에서 열기" },
   "popupTranslate": { "message": "이 페이지 번역" },
   "popupRestore": { "message": "원문 보기" },
   "popupUnavailable": { "message": "이 페이지에서는 사용할 수 없습니다" },

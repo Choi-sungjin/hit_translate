@@ -3,6 +3,7 @@
 // commands and all network calls to the AI providers.
 
 import { PROVIDERS, providerRequiresKey, translateTexts } from './providers.js';
+import { isPdfUrl } from './pdf-extract.js';
 
 export const DEFAULT_SETTINGS = {
   provider: 'gemini',
@@ -17,6 +18,7 @@ export const DEFAULT_SETTINGS = {
   batchMaxItems: 12,
   concurrency: 3,
   customPrompt: '',
+  pdfAutoOpen: true,
   providers: {
     gemini: { apiKey: '', model: '', baseUrl: '' },
     openai: { apiKey: '', model: '', baseUrl: '' },
@@ -164,6 +166,16 @@ function openPdfReader(url) {
   const page = chrome.runtime.getURL('pdf.html');
   chrome.tabs.create({ url: url ? `${page}?file=${encodeURIComponent(url)}` : page });
 }
+
+// Immersive-style takeover: when a tab navigates to a PDF, reload it as the
+// bilingual reader page instead of Chrome's built-in viewer (toggleable).
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+  if (!changeInfo.url || !isPdfUrl(changeInfo.url)) return;
+  const settings = await getSettings();
+  if (!settings.pdfAutoOpen) return;
+  const viewer = `${chrome.runtime.getURL('pdf.html')}?file=${encodeURIComponent(changeInfo.url)}`;
+  chrome.tabs.update(tabId, { url: viewer }).catch(() => {});
+});
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'hit-translate-pdf-page') {

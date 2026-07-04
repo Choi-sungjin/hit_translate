@@ -63,6 +63,10 @@ export function linesToParagraphs(lines) {
   }
   const median = typicalGap(gaps);
 
+  // Bullet or numbered-list markers always begin a new paragraph — dense
+  // lists often use line spacing identical to their body text.
+  const LIST_MARKER = /^([-–—•·▪‣*]|\d{1,2}[.)]\s)/;
+
   const paragraphs = [];
   let current = null;
   for (let i = 0; i < lines.length; i++) {
@@ -74,6 +78,7 @@ export function linesToParagraphs(lines) {
       if (gap > median * 1.6) startNew = true; // blank line between paragraphs
       if (gap < -median) startNew = true; // jumped upward: new block
       if (Math.abs(line.height - prev.height) > prev.height * 0.25) startNew = true; // heading/body switch
+      if (LIST_MARKER.test(line.text)) startNew = true;
     }
     if (startNew) {
       current = { text: line.text };
@@ -89,6 +94,49 @@ export function linesToParagraphs(lines) {
     .filter((t) => t.length > 1);
 }
 
-export function itemsToParagraphs(items) {
-  return linesToParagraphs(itemsToLines(items));
+// Oversized paragraphs blow past request limits and get truncated by the
+// model; split them at sentence boundaries into <= maxLen chunks.
+export function splitLongParagraph(text, maxLen = 1000) {
+  if (text.length <= maxLen) return [text];
+  const sentences = text.split(/(?<=[.!?。？！])\s+/);
+  const chunks = [];
+  let current = '';
+  for (const sentence of sentences) {
+    if (current && current.length + sentence.length + 1 > maxLen) {
+      chunks.push(current);
+      current = sentence;
+    } else {
+      current = current ? `${current} ${sentence}` : sentence;
+    }
+    while (current.length > maxLen) {
+      chunks.push(current.slice(0, maxLen));
+      current = current.slice(maxLen);
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks;
+}
+
+export function itemsToParagraphs(items, { maxLen = 1000 } = {}) {
+  return linesToParagraphs(itemsToLines(items)).flatMap((p) => splitLongParagraph(p, maxLen));
+}
+
+// Should this tab URL be taken over by the bilingual PDF reader?
+// '#hit-original' is the escape hatch the reader adds to its
+// "open original" link so the redirect doesn't loop.
+export function isPdfUrl(url) {
+  if (!/^(https?|file):/i.test(url || '')) return false;
+  if (url.includes('#hit-original')) return false;
+  try {
+    const pathname = new URL(url).pathname;
+    let decoded = pathname;
+    try {
+      decoded = decodeURIComponent(pathname);
+    } catch {
+      /* keep raw pathname */
+    }
+    return /\.pdf$/i.test(decoded);
+  } catch {
+    return false;
+  }
 }

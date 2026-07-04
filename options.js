@@ -57,6 +57,7 @@ const DEFAULTS = {
   style: 'dashed',
   selectionEnabled: true,
   hoverEnabled: true,
+  pdfAutoOpen: true,
   autoSites: [],
   excludedSites: [],
   batchCharLimit: 1600,
@@ -288,6 +289,7 @@ async function init() {
   document.getElementById('style').value = settings.style;
   document.getElementById('selectionEnabled').checked = settings.selectionEnabled !== false;
   document.getElementById('hoverEnabled').checked = settings.hoverEnabled !== false;
+  document.getElementById('pdfAutoOpen').checked = settings.pdfAutoOpen !== false;
   document.getElementById('autoSites').value = (settings.autoSites || []).join('\n');
   document.getElementById('excludedSites').value = (settings.excludedSites || []).join('\n');
 
@@ -303,6 +305,7 @@ async function init() {
   bind('style', 'style');
   bind('selectionEnabled', 'selectionEnabled');
   bind('hoverEnabled', 'hoverEnabled');
+  bind('pdfAutoOpen', 'pdfAutoOpen');
   const toLines = (v) => v.split('\n').map((s) => s.trim().toLowerCase()).filter(Boolean);
   bind('autoSites', 'autoSites', toLines);
   bind('excludedSites', 'excludedSites', toLines);
