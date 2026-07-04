@@ -34,6 +34,8 @@ button.primary {
 
 button.primary:hover:not(:disabled) { background: #0284c7; }
 button.primary:disabled { background: #cbd5e1; cursor: default; }
+button.primary.pdf { margin-top: 7px; background: #4f46e5; }
+button.primary.pdf:hover { background: #4338ca; }
 
 .warning {
   margin-top: 8px;

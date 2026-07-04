@@ -23,6 +23,7 @@ Bilingual "immersive-style" page translation is a genuinely great reading UX, bu
 - **Hover translate** — hold `Alt` and point at a paragraph to translate just that one
 - **Selection translate** — select text, click the bubble, get an instant translation popover
 - **Display styles** — dashed underline, underline, highlight, quote bar, or plain
+- **PDF translation** — built-in bilingual PDF reader: open any PDF (URL, local file, or drag & drop), get original + translation paragraph by paragraph, and export the result as a standalone bilingual HTML file
 - **Per-site rules** — always-translate list and never-run list
 - **Smart batching + caching + retry** — paragraphs are grouped per request, responses are cached, failed batches fall back to per-paragraph retries
 - **20 target languages**, UI in English and Korean
@@ -81,6 +82,7 @@ The same steps work on macOS, Windows, and Linux — the extension is pure JavaS
 | Translate / restore the page | `Alt+Q`, popup button, or right-click → *translate this page* |
 | Translate one paragraph | Hold `Alt` and hover over it |
 | Translate a selection | Select text → click the blue bubble |
+| Translate a PDF | Popup → *Translate this PDF* (when viewing one), right-click a PDF link/page, or open the reader from the extension and drop a file |
 | Bilingual ↔ translation-only | Popup → *Display* |
 | Always translate a site | Popup → *Always translate this site* |
 | Change style / language / provider | Popup or Settings |
@@ -102,6 +104,9 @@ content.js         paragraph detection, lazy batching, DOM injection, hover/sele
 content.css        injected translation styles
 popup.*            quick controls
 options.*          full settings (general / providers / advanced)
+pdf.*              bilingual PDF reader (pdf.js based, fully local)
+pdf-extract.js     PDF text → paragraph grouping (line merge, de-hyphenation)
+vendor/pdfjs/      bundled Mozilla pdf.js (Apache-2.0)
 _locales/          en, ko
 test/              provider unit tests (node) + DOM test page (headless Chrome)
 scripts/           icon pipeline (AI-generate via Codex CLI + resize/mask)
@@ -118,9 +123,15 @@ npm test                          # provider layer (includes a mock-server round
   --headless=new --dump-dom test/dom-test.html | grep '<title>'   # PASS:n expected
 ```
 
+### PDF translation notes
+
+Unlike closed-source alternatives that hand your PDF to a viewer hosted on their servers, Hit Translate bundles [Mozilla pdf.js](https://mozilla.github.io/pdf.js/) inside the extension: the file is parsed **entirely in your browser**, and only the extracted text goes to the AI provider you configured. Text-based PDFs work; scanned/image PDFs need OCR, which is on the roadmap. Multi-column layouts (e.g. two-column academic papers) may read in interleaved order in this version.
+
 ## Roadmap
 
-- [ ] PDF translation
+- [x] PDF translation (v1.2.0 — text-based PDFs)
+- [ ] OCR for scanned PDFs
+- [ ] Multi-column PDF layout detection
 - [ ] Video subtitle translation
 - [ ] Input box translation (write in your language, send in theirs)
 - [ ] Firefox support
@@ -145,5 +156,7 @@ Contributions are welcome — open an issue or PR.
 **설치 (macOS / Windows 공통):** 위 [Install](#install-developer-mode--macos--windows) 절차대로 저장소를 받고 → `chrome://extensions` → 개발자 모드 켜기 → **압축해제된 확장 프로그램을 로드** → 폴더 선택 → 설정에서 API 키 등록 후 **연결 테스트** → 아무 외국어 페이지에서 `Alt+Q`.
 
 **주요 기능:** 페이지 이중 번역(`Alt+Q`), 번역만 보기 모드, 스크롤 위치 기반 지연 번역(토큰 절약), SPA 동적 콘텐츠 자동 감지, `Alt`+마우스오버 문단 번역, 드래그 선택 번역, 5가지 번역문 스타일, 사이트별 자동 번역/제외 목록, 배치·캐시·재시도 처리.
+
+**PDF 번역:** 익스텐션에 내장된 pdf.js 기반 이중 언어 PDF 리더를 제공합니다. PDF를 보던 중 팝업의 **"이 PDF 번역"** 버튼, PDF 링크 우클릭 메뉴, 또는 리더 페이지에 파일을 끌어다 놓는 방식으로 열 수 있고, 문단별 원문+번역을 보여주며 결과를 이중 언어 HTML로 저장할 수 있습니다. 파일 파싱은 전부 브라우저 안에서 이루어지고 추출된 텍스트만 설정한 AI 제공자에게 전송됩니다 (텍스트 기반 PDF만 지원, 스캔본 OCR은 로드맵).
 
 **Ollama 로컬 번역:** 클라우드 계정 없이 완전 로컬로 번역할 수 있습니다. Ollama가 기본적으로 확장 프로그램 요청을 차단하므로, macOS에서는 `launchctl setenv OLLAMA_ORIGINS "chrome-extension://*"` 실행 후 Ollama 앱을 재시작하세요 (Windows: `setx OLLAMA_ORIGINS chrome-extension://*`). 이후 설정 → AI 제공자 → Ollama에서 **설치된 모델 불러오기**로 모델을 선택하면 됩니다. 로컬 모델은 배치당 1분 안팎으로 느리므로 전체 페이지 번역에는 4~8B급 작은 모델을 권장합니다.

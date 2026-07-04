@@ -8,6 +8,7 @@ import {
   translateTexts,
   providerRequiresKey
 } from '../providers.js';
+import { itemsToLines, itemsToParagraphs } from '../pdf-extract.js';
 
 let failures = 0;
 function check(name, cond, detail = '') {
@@ -139,6 +140,39 @@ function check(name, cond, detail = '') {
     threw = true;
   }
   check('mismatch throws for batches', threw);
+}
+
+// ---- PDF paragraph grouping ----
+{
+  const it = (str, x, y, size = 12) => ({
+    str,
+    transform: [size, 0, 0, size, x, y],
+    width: str.length * size * 0.5,
+    height: size
+  });
+  const items = [
+    it('Title of Document', 72, 760, 20),
+    it('This is the first', 72, 720),
+    it('paragraph line.', 180, 720), // same baseline, gap → space
+    it('It continues here.', 72, 706),
+    it('And a third line.', 72, 692),
+    it('Second paragraph with transla-', 72, 664), // 28pt gap → new paragraph
+    it('tion joined across lines.', 72, 650),
+    it('', 72, 640), // empty items are dropped
+    it('   ', 72, 630)
+  ];
+  const lines = itemsToLines(items);
+  check('pdf line merge with space', lines.some((l) => l.text === 'This is the first paragraph line.'));
+  const paras = itemsToParagraphs(items);
+  check('pdf paragraph count', paras.length === 3, JSON.stringify(paras));
+  check('pdf title split by font size', paras[0] === 'Title of Document');
+  check(
+    'pdf body lines merged',
+    paras[1] === 'This is the first paragraph line. It continues here. And a third line.',
+    paras[1]
+  );
+  check('pdf de-hyphenation', paras[2] === 'Second paragraph with translation joined across lines.', paras[2]);
+  check('pdf empty input', itemsToParagraphs([]).length === 0);
 }
 
 // ---- E2E against a mock OpenAI-compatible server ----

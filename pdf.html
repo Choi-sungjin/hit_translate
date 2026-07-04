@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Hit Translate — PDF</title>
+  <link rel="stylesheet" href="pdf.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img src="icons/32.png" alt="" width="22" height="22" />
+      <strong>Hit Translate</strong>
+      <span class="sub">PDF</span>
+    </div>
+    <div class="controls">
+      <button id="openFile" data-i18n="pdfOpenFile">Open PDF…</button>
+      <input type="file" id="fileInput" accept="application/pdf" hidden />
+      <input type="url" id="urlInput" data-i18n-placeholder="pdfUrlPlaceholder" placeholder="https://…/document.pdf" />
+      <button id="loadUrl" data-i18n="pdfLoadUrl">Load URL</button>
+      <button id="exportBtn" data-i18n="pdfExport" disabled>Save bilingual HTML</button>
+    </div>
+    <div class="status">
+      <span id="meta"></span>
+      <span id="progress"></span>
+    </div>
+  </header>
+
+  <div id="banner" hidden></div>
+
+  <main id="content">
+    <div id="dropzone">
+      <p data-i18n="pdfDropHint">Drop a PDF here, open a file, or paste a URL above.</p>
+      <p class="small" data-i18n="pdfLocalNote">Text-based PDFs only (no OCR for scanned pages yet). Translation uses the provider configured in Settings.</p>
+    </div>
+  </main>
+
+  <script src="ui-common.js"></script>
+  <script type="module" src="pdf-viewer.js"></script>
+</body>
+</html>

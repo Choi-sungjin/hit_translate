@@ -131,6 +131,8 @@ async function handleTestProvider({ providerId, cfg, targetLang }) {
 }
 
 // ---- context menus / commands / badge ----
+const PDF_URL_PATTERNS = ['*://*/*.pdf', '*://*/*.pdf?*', '*://*/*.PDF', 'file:///*.pdf'];
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
@@ -143,10 +145,35 @@ chrome.runtime.onInstalled.addListener(() => {
       title: chrome.i18n.getMessage('menuTranslateSelection'),
       contexts: ['selection']
     });
+    chrome.contextMenus.create({
+      id: 'hit-translate-pdf-page',
+      title: chrome.i18n.getMessage('menuTranslatePdf'),
+      contexts: ['page'],
+      documentUrlPatterns: PDF_URL_PATTERNS
+    });
+    chrome.contextMenus.create({
+      id: 'hit-translate-pdf-link',
+      title: chrome.i18n.getMessage('menuTranslatePdf'),
+      contexts: ['link'],
+      targetUrlPatterns: PDF_URL_PATTERNS
+    });
   });
 });
 
+function openPdfReader(url) {
+  const page = chrome.runtime.getURL('pdf.html');
+  chrome.tabs.create({ url: url ? `${page}?file=${encodeURIComponent(url)}` : page });
+}
+
 chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === 'hit-translate-pdf-page') {
+    openPdfReader(info.pageUrl);
+    return;
+  }
+  if (info.menuItemId === 'hit-translate-pdf-link') {
+    openPdfReader(info.linkUrl);
+    return;
+  }
   if (!tab?.id) return;
   if (info.menuItemId === 'hit-toggle-page') {
     chrome.tabs.sendMessage(tab.id, { type: 'togglePage' }).catch(() => {});
@@ -178,6 +205,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg?.type === 'openOptions') {
     chrome.runtime.openOptionsPage();
+    return false;
+  }
+  if (msg?.type === 'openPdfReader') {
+    openPdfReader(msg.url);
     return false;
   }
   if (msg?.type === 'pageState' && sender.tab?.id != null) {

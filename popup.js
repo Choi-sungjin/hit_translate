@@ -60,6 +60,16 @@ async function init() {
   autoBox.checked = !!host && (settings.autoSites || []).includes(host);
   autoBox.disabled = !host;
 
+  const pdfBtn = document.getElementById('pdfBtn');
+  const tabUrl = currentTab?.url || '';
+  if (/\.pdf($|[?#])/i.test(tabUrl)) {
+    pdfBtn.hidden = false;
+    pdfBtn.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'openPdfReader', url: tabUrl });
+      window.close();
+    });
+  }
+
   updateKeyWarning();
   await refreshToggleLabel();
 
