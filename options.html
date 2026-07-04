@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Hit Translate — Settings</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand">
+        <img src="icons/48.png" alt="" width="28" height="28" />
+        <span>Hit Translate</span>
+      </div>
+      <nav>
+        <button class="nav active" data-tab="general" data-i18n="tabGeneral">General</button>
+        <button class="nav" data-tab="providers" data-i18n="tabProviders">AI Providers</button>
+        <button class="nav" data-tab="advanced" data-i18n="tabAdvanced">Advanced</button>
+        <button class="nav" data-tab="about" data-i18n="tabAbout">About</button>
+      </nav>
+    </aside>
+
+    <main>
+      <!-- General -->
+      <section id="tab-general" class="tab active">
+        <h2 data-i18n="tabGeneral">General</h2>
+
+        <div class="field">
+          <label data-i18n="labelTargetLang">Translate into</label>
+          <select id="targetLang"></select>
+        </div>
+        <div class="field">
+          <label data-i18n="labelProvider">AI provider</label>
+          <select id="provider"></select>
+        </div>
+        <div class="field">
+          <label data-i18n="labelMode">Display</label>
+          <select id="mode">
+            <option value="dual" data-i18n="modeDual">Bilingual (original + translation)</option>
+            <option value="replace" data-i18n="modeReplace">Translation only</option>
+          </select>
+        </div>
+        <div class="field">
+          <label data-i18n="labelStyle">Translation style</label>
+          <select id="style">
+            <option value="none" data-i18n="styleNone">Plain</option>
+            <option value="dashed" data-i18n="styleDashed">Dashed underline</option>
+            <option value="underline" data-i18n="styleUnderline">Underline</option>
+            <option value="background" data-i18n="styleBackground">Highlight</option>
+            <option value="quote" data-i18n="styleQuote">Quote bar</option>
+          </select>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="selectionEnabled" />
+          <span data-i18n="optSelection">Show translate button when text is selected</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="hoverEnabled" />
+          <span data-i18n="optHover">Translate paragraph under cursor while holding Alt</span>
+        </label>
+
+        <div class="field col">
+          <label data-i18n="optAutoSites">Always-translate sites (one hostname per line)</label>
+          <textarea id="autoSites" rows="4" placeholder="example.com&#10;news.ycombinator.com"></textarea>
+        </div>
+        <div class="field col">
+          <label data-i18n="optExcludedSites">Never run on these sites (one hostname per line)</label>
+          <textarea id="excludedSites" rows="4" placeholder="mybank.com"></textarea>
+        </div>
+      </section>
+
+      <!-- Providers -->
+      <section id="tab-providers" class="tab">
+        <h2 data-i18n="tabProviders">AI Providers</h2>
+        <p class="note" data-i18n="providersNote">
+          Keys are stored only in this browser (chrome.storage.local) and are sent
+          directly to the provider you choose. Nothing passes through any third-party server.
+        </p>
+        <div id="providerCards"></div>
+      </section>
+
+      <!-- Advanced -->
+      <section id="tab-advanced" class="tab">
+        <h2 data-i18n="tabAdvanced">Advanced</h2>
+        <div class="field">
+          <label data-i18n="advBatchChars">Max characters per request</label>
+          <input type="number" id="batchCharLimit" min="200" max="8000" step="100" />
+        </div>
+        <div class="field">
+          <label data-i18n="advBatchItems">Max paragraphs per request</label>
+          <input type="number" id="batchMaxItems" min="1" max="50" />
+        </div>
+        <div class="field">
+          <label data-i18n="advConcurrency">Concurrent requests</label>
+          <input type="number" id="concurrency" min="1" max="10" />
+        </div>
+        <div class="field col">
+          <label data-i18n="advPrompt">Custom system prompt ({lang} = target language, empty = default)</label>
+          <textarea id="customPrompt" rows="6" spellcheck="false"></textarea>
+        </div>
+        <div class="btnrow">
+          <button id="exportBtn" data-i18n="advExport">Export settings</button>
+          <button id="importBtn" data-i18n="advImport">Import settings</button>
+          <input type="file" id="importFile" accept="application/json" hidden />
+        </div>
+      </section>
+
+      <!-- About -->
+      <section id="tab-about" class="tab">
+        <h2 data-i18n="tabAbout">About</h2>
+        <p><strong>Hit Translate</strong> <span id="version"></span></p>
+        <p data-i18n="aboutText">
+          Open-source bilingual web page translator. Bring your own AI API key —
+          requests go straight from your browser to the provider, and you pay the
+          provider directly.
+        </p>
+        <p>
+          <a href="https://github.com/Choi-sungjin/hit_translate" target="_blank" rel="noreferrer">GitHub — Choi-sungjin/hit_translate</a>
+        </p>
+        <h3 data-i18n="aboutShortcuts">Keyboard shortcuts</h3>
+        <ul class="shortcuts">
+          <li><kbd>Alt</kbd>+<kbd>Q</kbd> — <span data-i18n="cmdToggle">Translate / restore this page</span></li>
+          <li><kbd>Alt</kbd> + hover — <span data-i18n="optHoverShort">translate paragraph under cursor</span></li>
+        </ul>
+      </section>
+
+      <div id="toast" hidden>Saved</div>
+    </main>
+  </div>
+
+  <script src="ui-common.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

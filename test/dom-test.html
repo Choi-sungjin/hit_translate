@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>RUNNING</title>
+  <link rel="stylesheet" href="../content.css" />
+</head>
+<body>
+  <div id="fixture">
+    <h1>The quick brown fox</h1>
+    <p>Paragraph one with a <a href="#">link inside</a> and more text.</p>
+    <div>
+      <p>Nested paragraph in a div.</p>
+      <div>Leaf div with plain text.</div>
+    </div>
+    <ul>
+      <li>First list item text</li>
+      <li>Second list item text</li>
+    </ul>
+    <table><tr><td>Cell content here</td><td>42</td></tr></table>
+    <p class="notranslate">Should be skipped (notranslate).</p>
+    <p translate="no">Should be skipped (translate=no).</p>
+    <pre>code_block_should_be_skipped()</pre>
+    <script type="text/plain">skip me</script>
+    <p>이미 한국어인 문단은 건너뛰어야 합니다. 한국어 텍스트 비율이 높습니다.</p>
+    <p></p>
+    <p>42</p>
+  </div>
+
+  <script src="../content.js"></script>
+  <script>
+    const results = [];
+    function check(name, cond, detail = '') {
+      results.push({ name, pass: !!cond, detail: String(detail) });
+    }
+    const T = window.__hitTest;
+    T.setSettings({ targetLang: 'ko', mode: 'dual', style: 'dashed' });
+
+    // 1. segmentation
+    const units = T.collectUnits(document.getElementById('fixture'));
+    const texts = units.map((u) => T.unitText(u));
+    check('unit count', units.length === 7, `got ${units.length}: ${JSON.stringify(texts)}`);
+    check('h1 is a unit', texts.includes('The quick brown fox'));
+    check('paragraph keeps inline link text', texts.some((t) => t.includes('link inside')));
+    check('nested p found, wrapper div not', texts.includes('Nested paragraph in a div.'));
+    check('leaf div found', texts.includes('Leaf div with plain text.'));
+    check('list items found', texts.filter((t) => t.includes('list item')).length === 2);
+    check('table cell found', texts.includes('Cell content here'));
+    check('numeric-only cell skipped', !texts.includes('42'));
+    check('notranslate skipped', !texts.some((t) => t.includes('notranslate')));
+    check('pre skipped', !texts.some((t) => t.includes('code_block')));
+    check('korean paragraph skipped', !texts.some((t) => t.includes('한국어')));
+
+    // 2. language heuristic
+    check('ko detection', T.looksLikeTargetLang('안녕하세요 반갑습니다', 'ko'));
+    check('en not ko', !T.looksLikeTargetLang('Hello there my friend', 'ko'));
+    check('en detection', T.looksLikeTargetLang('Hello there my friend', 'en'));
+
+    // 3. injection (dual)
+    units.forEach((u, i) => T.applyTranslation(u, `번역 ${i}`));
+    check('wrappers injected', T.getWrapperCount() === units.length, T.getWrapperCount());
+    const w0 = units[0].querySelector('font[data-hit-node]');
+    check('wrapper content', w0 && w0.textContent === '번역 0');
+    check('original intact in dual mode', units[0].textContent.includes('The quick brown fox'));
+    check('style class applied', w0.classList.contains('hit-style-dashed'));
+
+    // 4. re-collect ignores translated units' wrappers
+    const again = T.collectUnits(document.getElementById('fixture'));
+    check('no re-collection of done units', again.length === 0, again.length);
+
+    // 5. replace mode on a fresh element
+    const fresh = document.createElement('p');
+    fresh.innerHTML = 'Replace me <a href="#">keep link</a> tail';
+    document.getElementById('fixture').appendChild(fresh);
+    T.setSettings({ mode: 'replace' });
+    T.applyTranslation(fresh, '교체된 번역');
+    const hiddenSpans = fresh.querySelectorAll('span[data-hit-orig]');
+    const hiddenEls = fresh.querySelectorAll('[data-hit-orig-el]');
+    check('replace mode wraps text nodes', hiddenSpans.length === 2, hiddenSpans.length);
+    check('replace mode marks elements', hiddenEls.length === 1, hiddenEls.length);
+    check('replace keeps link node', !!fresh.querySelector('a'));
+
+    // 6. restore
+    T.restoreAll();
+    check('wrappers removed', T.getWrapperCount() === 0 && !document.querySelector('font[data-hit-node]'));
+    check('originals unwrapped', !document.querySelector('[data-hit-orig], [data-hit-orig-el]'));
+    check('fresh element text restored', fresh.textContent === 'Replace me keep link tail', JSON.stringify(fresh.textContent));
+
+    const failed = results.filter((r) => !r.pass);
+    document.title = failed.length ? `FAIL:${failed.length}` : `PASS:${results.length}`;
+    const out = document.createElement('pre');
+    out.id = 'results';
+    out.textContent = results
+      .map((r) => `${r.pass ? 'ok  ' : 'FAIL'} ${r.name}${r.pass ? '' : ' — ' + r.detail}`)
+      .join('\n');
+    document.body.appendChild(out);
+  </script>
+</body>
+</html>

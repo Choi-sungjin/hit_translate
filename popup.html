@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <img src="icons/32.png" alt="" width="20" height="20" />
+    <h1>Hit Translate</h1>
+  </header>
+
+  <button id="toggle" class="primary" data-i18n="popupTranslate">Translate this page</button>
+  <div id="keyWarning" class="warning" hidden>
+    <span data-i18n="popupNoKey">No API key for the selected provider.</span>
+    <a href="#" id="openOptionsWarn" data-i18n="popupSetKey">Set it up →</a>
+  </div>
+
+  <div class="row">
+    <label data-i18n="labelProvider">AI provider</label>
+    <select id="provider"></select>
+  </div>
+  <div class="row">
+    <label data-i18n="labelTargetLang">Translate into</label>
+    <select id="targetLang"></select>
+  </div>
+  <div class="row">
+    <label data-i18n="labelMode">Display</label>
+    <select id="mode">
+      <option value="dual" data-i18n="modeDual">Bilingual (original + translation)</option>
+      <option value="replace" data-i18n="modeReplace">Translation only</option>
+    </select>
+  </div>
+  <div class="row">
+    <label data-i18n="labelStyle">Translation style</label>
+    <select id="style">
+      <option value="none" data-i18n="styleNone">Plain</option>
+      <option value="dashed" data-i18n="styleDashed">Dashed underline</option>
+      <option value="underline" data-i18n="styleUnderline">Underline</option>
+      <option value="background" data-i18n="styleBackground">Highlight</option>
+      <option value="quote" data-i18n="styleQuote">Quote bar</option>
+    </select>
+  </div>
+
+  <label class="check">
+    <input type="checkbox" id="autoSite" />
+    <span data-i18n="popupAutoSite">Always translate this site</span>
+  </label>
+
+  <footer>
+    <a href="#" id="openOptions" data-i18n="popupOptions">Settings</a>
+    <span class="hint" data-i18n="popupShortcut">Shortcut: Alt+Q</span>
+  </footer>
+
+  <script src="ui-common.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "hit-translate",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Open-source bilingual web page translation extension — bring your own AI API key.",
+  "scripts": {
+    "test": "node test/run.mjs"
+  }
+}
